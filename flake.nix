@@ -27,11 +27,15 @@
             url = "https://github.com/axmolengine/axslcc-legacy/releases/download/v1.9.5/glslcc-1.9.5-linux.tar.gz";
             hash = "sha256-46pT1FMytCdzsbqmaGxpvvI30J5wJAQS6mlLSXn6DOw=";
           };
+          "1.9.6" = {
+            url = "https://github.com/axmolengine/axslcc-legacy/releases/download/v1.9.6/axslcc-1.9.6-linux.tar.gz";
+            hash = "sha256-5DaYAfNxWtafDpTvMRdqDABdzU4wLO1h1V0BcyJ+5tc=";
+          };
         };
-        packages = {
+        packages = rec {
           mkAxslccLegacy =
             {
-              version ? "1.9.5",
+              version ? "1.9.6",
             }:
             pkgs.stdenv.mkDerivation {
               name = "axslcc-legacy";
@@ -87,6 +91,8 @@
                 makeWrapper $out/bin/axslcc-real $out/bin/axslcc --set LD_LIBRARY_PATH "$out/lib"
               '';
             };
+
+          default = mkAxslccLegacy { };
         };
       }
     );
