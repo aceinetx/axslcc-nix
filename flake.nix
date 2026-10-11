@@ -19,64 +19,52 @@
       in
       {
         packages = rec {
-          axslcc-legacy = pkgs.stdenv.mkDerivation rec {
+          axslcc-legacy = pkgs.stdenv.mkDerivation {
             name = "axslcc-legacy";
 
-            src = pkgs.fetchgit {
-              url = "https://github.com/axmolengine/axslcc-legacy";
-              tag = "v3.6.0";
-              sha256 = "sha256-tx0BZXVAOie3EOTdPdA0GMZ7EY6bl1CpqHXkf0CgE8U=";
+            src = pkgs.fetchurl {
+              url = "https://github.com/axmolengine/axslcc-legacy/releases/download/v3.6.0/axslcc-3.6.0-linux-x64.tar.gz";
+              sha256 = "sha256-4FuupZMSDEFUd6e5xIp8t7vBJGs4gJo1CLsM/wzE/Mc=";
             };
 
-            glslang-repo = pkgs.fetchgit {
-              url = "https://github.com/KhronosGroup/glslang.git";
-              tag = "16.5.0";
-              sha256 = "sha256-usrfmjyJjumM/pjMGa59tHaQ6b2tC5hNSjgSZY3YGkI=";
-            };
-
-            buildInputs = with pkgs; [
-              stdenv.cc.cc
-              ninja
-              python3
-              git
-              zlib
-              cmake
-              pkg-config
-              spirv-tools
-              glslang
-            ];
-
-            patchPhase = ''
-              patch CMakeLists.txt ${self}/axslcc-legacy.CMakeLists.txt.patch
-              cat CMakeLists.txt
-            '';
-
-            configurePhase = ''
-              echo COPYING
-              cp ${glslang-repo} 3rdparty/glslang -r
-              chmod -R u+rwX 3rdparty/glslang
-
-              mkdir -p build
-              cd build
-              cmake .. -DCMAKE_BUILD_TYPE=Release
-            '';
+            sourceRoot = ".";
 
             buildPhase = ''
-              ls
-              echo $(find . -name "CMakeLists.txt")
-
-              make -j$(nproc)
-            '';
-
-            installPhase = ''
               mkdir -p $out/bin
 
-              cp src/glslcc $out/bin/glslcc
-              ln -s $out/bin/glslcc $out/bin/axslcc
+              cp axslcc $out/bin
+              ln -s $out/bin/axslcc $out/bin/glslcc
             '';
           };
 
-          default = axslcc-legacy;
+          axslcc = pkgs.stdenv.mkDerivation {
+            name = "axslcc";
+
+            src = pkgs.fetchurl {
+              url = "https://github.com/axmolengine/axslcc/releases/download/v3.99.2/axslcc-3.99.2-linux-x64.tar.gz";
+              sha256 = "sha256-I2r/CZm56bCZFjN4YUo0HWuL/iMbA56HbmvMhLAFGjA=";
+            };
+
+            sourceRoot = ".";
+
+            buildInputs = with pkgs; [
+              makeWrapper
+            ];
+
+            buildPhase = ''
+              mkdir -p $out/bin
+              mkdir -p $out/lib
+
+              cp axslcc-3.99.2-linux-x64/bin/* .
+
+              cp axslcc $out/bin/axslcc-real
+              cp libdxcompiler.so $out/lib
+
+              makeWrapper $out/bin/axslcc-real $out/bin/axslcc --set LD_LIBRARY_PATH "$out/lib"
+            '';
+          };
+
+          default = axslcc;
         };
       }
     );
